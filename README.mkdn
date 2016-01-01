@@ -1,0 +1,196 @@
+SAAS Autograder
+==============
+
+Travis C. I. [![Build Status](https://travis-ci.org/saasbook/rag.png)](https://travis-ci.org/saasbook/rag)
+[![Code Climate](https://codeclimate.com/github/saasbook/rag.png)](https://codeclimate.com/github/saasbook/rag)
+
+
+####Berkeley SAAS  w/ [edX](https://www.edx.org/)
+
+* Berkeley folks
+  * There is an AMI (id ami-df77a8b6) that includes latest version of the autograder.
+* Other folks
+  * the autograder code is at [github:saasbook/rag](https://github.com/saasbook/rag).
+
+Usage
+--------------------
+
+1. Launch an EC2 instance (micro is fine) with autograder AMI. If you are using solutions from a private repo, make sure you set up a deploy key and place it into the Amazon ENV as GITHUB_DEPLOY_KEY. 
+
+2. hw6Grader1 has the latest version of rag, so move the content from it to the new instance.
+   * You might want to move the logs before you copy as they take up a lot of space.
+
+    NOTE: <i>Somebody should make a new AMI with the updated connection code, and enabled to pull from the saasbook repos</i>
+
+Configuration and setup
+------------------------
+The ubuntu_install.sh script is provided in the repo for easy set up on Amazon machines. You can also refer to it to set up it locally.
+
+
+There is one config file hosted locally on the autograder required for setup with edX: ```config/conf.yml```.
+
+* ```conf.yml``` includes the following:
+	
+	```
+	default:
+	  adapter: XQueue  #Name of the submission interface being used.
+	  queue_uri: 'https://xqueue.edx.org/'
+	  queue_name: 'cs169x-development'
+	  django_auth:
+	    username: 'username'
+	    password: 'password'
+	  user_auth:
+	    user_name: 'username'
+	    user_pass: 'password' 
+	```
+
+ * ```default``` defines the current strategy being used by the autograder.
+ * The rest of the information should be filled in appropriately. Currently only supports XQueue as a submission interface
+
+ ### Remote edX configuration
+
+   
+    If using edX, you must configure the homework to point to where the autograder can retrieve the spec files for the homework.
+    The grader payload is specified as XML and is passed to the autograder as JSON. It contains the following:
+    
+    ```
+    assignment_name: 'assign1'  # the name of the assignment
+    autograder_type: 'HerokuRspecGrader'  # type of grader to use on the submission. Will be deprecated and moved into hw repo.
+    assignment_spec_uri: 'git@github.com:zhangaaron/example_hw1_sol.git'  #  a homework directory containing spec files for the autograder to run against HW
+    deploy_key: 'xxx'  # a read-only deploy key configured for use with private repo for homework solutions. Only necessary if the deploy key has not been set in ENV
+    due_dates: {'20150619000000': 1.00, '20150620000000': 0.30}  # a hash that defines time brackets and grade scaling based on submission time. If date < key, then will receive scaling value associated with key. 
+    version: 1.0.0  # the version of RAG configured to use with this homework
+    ```
+
+
+
+Execution and tests
+--------------------------------
+
+####To run the autograder program:
+ ``` bundle exec ruby run_autograder.rb path/to/configfile ```
+
+## The mutation testing/feature grader (HW 3)
+
+At a high level HW3 and others that use `FeatureGrader` work by running
+student-submitted Cucumber scenarios against modified versions of a
+instructor-provided app. 
+
+The Following Diagram roughly describes the flow of the autograder :
+
+<img src="./feature_grader.png"/>
+
+Each step defined in the .yml file can have scenarios to run iff that step passes.
+
+Example from hw3.yml:
+
+    - &step1-1
+          FEATURE: features/filter_movie_list.feature
+          pass: true
+          weight: 0.2
+          if_pass:
+          - &step1-3
+          FEATURE: features/filter_movie_list.feature
+          version: 2
+          weight: 0.075
+          desc: "results = [G, PG-13] movies"
+          failures:
+          - *restrict_pg_r
+          - *all_x_selected
+
+In this case if step1-1 passes, Step 1-3 will be run. If step1-1 fails
+then step1-3 will not run and the student will not receive points for
+it. It is important that the outer step be less restrictive than the
+inner step (If the outer one fails, there should be no way that the
+inner one could pass). 
+
+Step1-3 has two scenarios specified as failures; this indicates that
+when the cucumber features are run, both of those scenarios should
+fail. In other words, when the mutation for this step is added to the
+app, the student’s tests should detect the change and fail. (Example: If
+the test is to ensure that data is sorted, and the mutation is that the
+data is in reverse order, the student’s test should fail because the app
+is not behaving as expected) 
+
+### Defining a new step:
+
+In order to add a new step the following must be done:
+
+1. Add an entry to the .yml file.
+
+2. The new entry should be a hash  with the following properties:
+	1. `FEATURE`, a relative path to the Cucumber feature that will be run for this step.
+	2. `weight`, the fraction of total points on this homework
+        represented by this feature
+	3. `version`: This sets an environment variable that the
+ mutation-test app can  use to add any modifications desired to the app before the feature is run.
+	4. `desc`: A string describing the step, used when providing feedback
+
+3. Optional properties:
+	1. `failures` (list): scenarios that should fail in this step
+	2. `if_pass` (list): steps to run iff this step passes.
+
+### Defining a new Scenario:
+
+To define a new scenario add a new entry to the "scenarios" hash in the
+.yml file. 
+It is a good idea to set an alias for the scenario so it can be
+referenced later inside of steps. 
+
+The entry should contain:
+
+1. `match`: A regular expression that will identify the name of this
+scenario. (Used when parsing cucumber output to see if this scenario
+passed or failed) 
+
+2. `desc`: A description of the scenario. (Used to give feedback to the student)
+
+### Adding a mutation to the app:
+
+When a feature is run, the environment variable `version` will be set to
+the value of the `version` property for that feature.  Use this as a
+feature flag in the app (by checking `ENV["version"]`) to trigger a
+"bug", e.g. reversing sort order/not returning all data. 
+
+
+Notes on the related homework and CI repos
+----
+
+This repo exists as a result of a process of splitting all the 169 homeworks into separate repos, e.g.
+
+https://github.com/saasbook/ruby-intro
+
+that are each paired with a private CI repo that would check their integrity, e.g. this one:
+
+https://github.com/saasbook/ruby-intro-ci
+
+The entire set up might be easier if everything with public.  The argument for the privacy is that if students have access to the tests that check their solutions they will be able to somehow 'cheat' although the counter-argument is that none of the 169 homework tests really reveal how to create a solution given that they are usually high level behavioural tests. Anyhow, the customer requirement was that some tests were to be kept private, so the *-ci repos are private.  And the workflow is this.
+
+Anytime that one wants to make a change to the student visible homework (e.g. to https://github.com/saasbook/ruby-intro), or the way in which they are graded (e.g. to https://github.com/saasbook/ruby-intro-ci) they submit  a pull request to the relevant repo.  Pull requests to the public student repo don't really have any effect - they just need to be reviewed and sanity checked by an admin - because the two repos are separate and the tests are in a private repo it's not obvious how to have pull request to publie repos kick off the tests.
+
+You might we should just have one repo, but then that would have to be private, and there would be no starting repo for students to fork and then submit pull requests if they find issues.  Enabling students to submit pull requests on the public repos is absolutely critical for QA.  1000's of students try the early homeworks, finding all sorts of corner cases that we need to fix.  It's sooooo much more manageable to handle as pull requests rather than emails or forum posts.
+
+So any admin wanting to approve a pull request on a public repo needs to kick off a run of the Travis CI on the private repo to make sure that the proposed changes don't break the grader or are incompatible with the private tests etc.
+
+Given that an instructor is proposing changes to the private repo, i.e. the private tests, then Travis will automatically kick off a check on any pull request.  The way things are set up there is a two stage process:
+
+1. Travis pulls out the autograder (without edx component)
+2. Travis runs the autograder on code from both the private and public repos in order to check consistency
+
+Both these stages are coded in cucumber, e.g.
+
+https://github.com/saasbook/ruby-intro-ci/blob/master/install/install.feature
+https://github.com/saasbook/ruby-intro-ci/blob/master/features/skeleton_and_solution_check.feature
+
+The whole process is designed to try and prevent errors from creeping in from any changes to the skeletons and public tests that the students clone, the private tests that are used to check the solutions, the example solutions, and even the autograder itself.
+
+This was all fairly simple for the first few homeworks, however as one gets up to the more complex rails homeworks there was a fair deal of complexity and hard work to make everything flow.  If memory serves everything is working on all hws due to particularly herculean efforts on the part of Paul, but I think the process left all of us rather tired of the whole autograder setup, which seems much more complex than in needs to be.  Paul did a great job, but the complexity of the whole thing meant that it was very difficult to onboard other volunteers, so Paul often ended up working alone with just a little outside support.   If only we could have got two or three other committed volunteers involved it might have been a different story.
+
+Anyhow, the framework is largely there, and working - please do check out the relevant repos and you can run the cucumber tests locally to do the same thing that Travis does.
+
+Most complexity will usually come from the autograder install.  Unfortunately the autograder codebase is extremely convoluted and in a rather poor state.  The intention of all this Travis C.I. work with all the different repos was to get us to the point that we could start safely refactoring the autograder itself knowing that we weren't breaking all the homeworks, however we never really got to the that point - we set up the overarching CI with a lot of effort, but by that time we were all pretty much burnt out.
+
+So the options moving forward are to try and refactor the existing autograder, which should be able to be done with some reliability now (although still the checks against all homeworks make the debug cycle a bit long); or to effectively bin the existing autograder as beyond hope and replace it with something leaner, that's actually programmed according to agile principles, i.e. test driven and not just hacked together to basically work given a few manual tests.
+
+Best of luck!
+

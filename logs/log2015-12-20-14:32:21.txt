@@ -1,0 +1,2 @@
+I, [2015-12-20T14:32:21.489499 #1258]  INFO -- : XQueue adapter received submission. Student 12334 assignment assignment5
+I, [2015-12-20T14:32:21.489499 #1258]  INFO -- : XQueue adapter received submission. Student 12334 assignment assignment5

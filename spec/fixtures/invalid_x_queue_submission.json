@@ -1,0 +1,15 @@
+{
+  "xqueue_header": "some_secret_001",
+  "xqueue_files": {
+    "my_file.rb": "http://fixture.net/correct_submission.zip"
+  },
+  "xqueue_body": {
+    "grader_payload": {
+      "due_dates": {"2000-01-02": 1.0, "2000-01-03": 0.75, "2000-01-04": 0.50, "2000-01-05": 0.25}
+    },
+    "student_info": {
+      "anonymous_student_id":  "abc123",
+      "submission_time":  "2013-01-01 00:00:00 GMT"
+    }
+  }
+}

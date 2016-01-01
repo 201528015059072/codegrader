@@ -1,0 +1,5 @@
+I, [2015-12-20T13:49:11.616055 #1214]  INFO -- : XQueue adapter received submission. Student 12334 assignment assignment5
+W, [2015-12-20T13:49:11.635577 #1215]  WARN -- : RSpec::Core::Runner encountered undefined method `each' for nil:NilClass
+W, [2015-12-20T13:49:11.635980 #1215]  WARN -- : Errors is:
+
+I, [2015-12-20T13:49:11.616055 #1214]  INFO -- : XQueue adapter received submission. Student 12334 assignment assignment5

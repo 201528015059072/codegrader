@@ -1,0 +1,2 @@
+I, [2015-12-20T11:25:05.885037 #1003]  INFO -- : XQueue adapter received submission. Student 12334 assignment assignment5
+I, [2015-12-20T11:28:05.902429 #1003]  INFO -- : Subprocess timed out killed and submission received 0 pts.

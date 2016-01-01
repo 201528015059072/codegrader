@@ -1,0 +1,5 @@
+I, [2016-01-01T11:40:58.195518 #1158]  INFO -- : XQueue adapter received submission. Student 12334 assignment assignment5
+W, [2016-01-01T11:40:58.368617 #1159]  WARN -- : RSpec::Core::Runner encountered undefined method `output_hash' for #<RSpec::Core::Formatters::DocumentationFormatter:0x007faf06690138>
+W, [2016-01-01T11:40:58.368777 #1159]  WARN -- : Errors is:
+
+I, [2016-01-01T11:40:58.195518 #1158]  INFO -- : XQueue adapter received submission. Student 12334 assignment assignment5

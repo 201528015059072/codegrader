@@ -1,0 +1,5 @@
+I, [2016-01-01T11:28:51.863324 #1146]  INFO -- : XQueue adapter received submission. Student 12334 assignment assignment5
+W, [2016-01-01T11:28:52.043066 #1147]  WARN -- : RSpec::Core::Runner encountered undefined method `output_report' for #<RSpec::Core::Formatters::DocumentationFormatter:0x007fec055fff70>
+W, [2016-01-01T11:28:52.043202 #1147]  WARN -- : Errors is:
+
+I, [2016-01-01T11:28:51.863324 #1146]  INFO -- : XQueue adapter received submission. Student 12334 assignment assignment5

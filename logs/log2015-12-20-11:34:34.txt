@@ -1,0 +1,5 @@
+I, [2015-12-20T11:34:34.541096 #1012]  INFO -- : XQueue adapter received submission. Student 12334 assignment assignment5
+I, [2015-12-20T11:34:34.541096 #1012]  INFO -- : XQueue adapter received submission. Student 12334 assignment assignment5
+W, [2015-12-21T09:01:49.621780 #1013]  WARN -- : RSpec::Core::Runner encountered Input/output error @ io_write - <STDOUT>
+W, [2015-12-21T09:01:49.622311 #1013]  WARN -- : Errors is:
+
